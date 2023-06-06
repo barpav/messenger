@@ -1,0 +1,33 @@
+services:
+
+  api-gateway:
+    image: barpav/msg-api-gateway
+    container_name: msg-api-gateway
+    ports:
+      - 80:80
+    depends_on:
+      - users-v1
+
+  users-v1:
+    image: barpav/msg-users:v1
+    container_name: msg-users-v1
+    environment:
+      - MSG_STORAGE_HOST=storage-users-v1
+    expose:
+      - 8080
+    depends_on:
+      storage-users-v1:
+        condition: service_healthy
+  
+  storage-users-v1:
+    image: barpav/msg-storage-users:v1
+    container_name: msg-storage-users-v1
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    expose:
+      - 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 2s
+      retries: 5
