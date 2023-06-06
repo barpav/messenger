@@ -1,7 +1,7 @@
 services:
 
   api-gateway:
-    image: barpav/msg-api-gateway
+    image: ghcr.io/barpav/msg-api-gateway
     container_name: msg-api-gateway
     ports:
       - 80:80
@@ -9,7 +9,7 @@ services:
       - users-v1
 
   users-v1:
-    image: barpav/msg-users:v1
+    image: ghcr.io/barpav/msg-users:v1
     container_name: msg-users-v1
     environment:
       - MSG_STORAGE_HOST=storage-users-v1
@@ -20,7 +20,7 @@ services:
         condition: service_healthy
   
   storage-users-v1:
-    image: barpav/msg-storage-users:v1
+    image: ghcr.io/barpav/msg-storage-users:v1
     container_name: msg-storage-users-v1
     environment:
       - POSTGRES_PASSWORD=postgres
