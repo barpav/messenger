@@ -1,3 +1,10 @@
+x-logging:
+  &default-logging
+  driver: "json-file"
+  options:
+    max-size: '5m'
+    max-file: '5'
+
 services:
 
   api-gateway:
@@ -5,6 +12,13 @@ services:
     container_name: msg-api-gateway
     ports:
       - 80:80
+    labels:
+      co.elastic.logs/enabled: true
+      co.elastic.logs/json.keys_under_root: true
+      co.elastic.logs/json.overwrite_keys: true
+      co.elastic.logs/json.add_error_key: true
+      co.elastic.logs/json.expand_keys: true
+    logging: *default-logging
     depends_on:
       - users-v1
 
@@ -15,6 +29,13 @@ services:
       - MSG_STORAGE_HOST=storage-users-v1
     expose:
       - 8080
+    labels:
+      co.elastic.logs/enabled: true
+      co.elastic.logs/json.keys_under_root: true
+      co.elastic.logs/json.overwrite_keys: true
+      co.elastic.logs/json.add_error_key: true
+      co.elastic.logs/json.expand_keys: true
+    logging: *default-logging
     depends_on:
       storage-users-v1:
         condition: service_healthy
@@ -26,8 +47,59 @@ services:
       - POSTGRES_PASSWORD=postgres
     expose:
       - 5432
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 1s
       timeout: 2s
       retries: 5
+  
+  logs-collector:
+    image: ghcr.io/barpav/msg-logs-collector
+    container_name: msg-logs-collector
+    user: root
+    environment:
+      - ELASTICSEARCH_HOSTS=http://logs-storage:9200
+    logging: *default-logging
+    mem_limit: 512M
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  
+  logs-storage:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.1
+    container_name: msg-logs-storage
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    expose:
+      - 9200
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-f", "http://logs-storage:9200/_cat/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1G
+
+  logs-ui:
+    image: docker.elastic.co/kibana/kibana:8.8.1
+    container_name: msg-logs-ui
+    environment:
+      - ELASTICSEARCH_HOSTS=http://logs-storage:9200
+    ports:
+      - 5601:5601
+    logging: *default-logging
+    depends_on:
+      logs-storage:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/api/status"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    mem_limit: 1G
