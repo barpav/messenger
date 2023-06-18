@@ -80,14 +80,10 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 1G
+    mem_limit: 1G
 
   logs-ui:
-    image: docker.elastic.co/kibana/kibana:8.8.1
+    image: ghcr.io/barpav/msg-logs-ui
     container_name: msg-logs-ui
     environment:
       - ELASTICSEARCH_HOSTS=http://logs-storage:9200
@@ -98,7 +94,8 @@ services:
       logs-storage:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/api/status"]
+      # Kibana doesn't provide other way to config dataviews
+      test: ["CMD", "curl", "-H", "kbn-xsrf: anything", "-F", "file=@/usr/share/kibana/config/settings.ndjson", "http://localhost:5601/api/saved_objects/_import"]
       interval: 3s
       timeout: 3s
       retries: 10
