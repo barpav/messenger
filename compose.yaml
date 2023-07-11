@@ -12,6 +12,8 @@ services:
     container_name: msg-api-gateway
     ports:
       - 80:80
+    expose:
+      - 9000
     labels:
       co.elastic.logs/enabled: true
       co.elastic.logs/json.keys_under_root: true
@@ -54,6 +56,37 @@ services:
       timeout: 2s
       retries: 5
   
+  sessions-v1:
+    image: ghcr.io/barpav/msg-sessions:v1
+    container_name: msg-sessions-v1
+    environment:
+      - MSG_STORAGE_HOST=storage-sessions-v1
+      - MSG_USERS_HOST=users-v1
+    expose:
+      - 8080
+    labels:
+      co.elastic.logs/enabled: true
+      co.elastic.logs/json.keys_under_root: true
+      co.elastic.logs/json.overwrite_keys: true
+      co.elastic.logs/json.add_error_key: true
+      co.elastic.logs/json.expand_keys: true
+    logging: *default-logging
+    depends_on:
+      storage-sessions-v1:
+        condition: service_healthy
+  
+  storage-sessions-v1:
+    image: redis:alpine3.18
+    container_name: msg-storage-sessions-v1
+    expose:
+      - 6379
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 2s
+      retries: 5
+
   logs-collector:
     image: ghcr.io/barpav/msg-logs-collector
     container_name: msg-logs-collector
