@@ -12,8 +12,6 @@ services:
     container_name: msg-api-gateway
     ports:
       - 80:80
-    expose:
-      - 9000
     labels:
       co.elastic.logs/enabled: true
       co.elastic.logs/json.keys_under_root: true
@@ -23,14 +21,17 @@ services:
     logging: *default-logging
     depends_on:
       - users-v1
+      - sessions-v1
 
   users-v1:
     image: ghcr.io/barpav/msg-users:v1
     container_name: msg-users-v1
     environment:
       - MSG_STORAGE_HOST=storage-users-v1
+      - MSG_SESSIONS_HOST=sessions-v1
     expose:
       - 8080
+      - 9000
     labels:
       co.elastic.logs/enabled: true
       co.elastic.logs/json.keys_under_root: true
@@ -64,6 +65,7 @@ services:
       - MSG_USERS_HOST=users-v1
     expose:
       - 8080
+      - 9000
     labels:
       co.elastic.logs/enabled: true
       co.elastic.logs/json.keys_under_root: true
@@ -74,6 +76,8 @@ services:
     depends_on:
       storage-sessions-v1:
         condition: service_healthy
+      users-v1:
+        condition: service_started
   
   storage-sessions-v1:
     image: redis:alpine3.18
