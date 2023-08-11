@@ -22,6 +22,7 @@ services:
     depends_on:
       - users-v1
       - sessions-v1
+      - files-v1
 
   users-v1:
     image: ghcr.io/barpav/msg-users:v1
@@ -89,6 +90,45 @@ services:
       test: ["CMD-SHELL", "redis-cli", "ping"]
       interval: 1s
       timeout: 2s
+      retries: 5
+  
+  files-v1:
+    image: ghcr.io/barpav/msg-files:v1
+    container_name: msg-files-v1
+    environment:
+      - MSG_STORAGE_HOST=storage-files-v1
+      - MSG_SESSIONS_HOST=sessions-v1
+    expose:
+      - 8080
+    labels:
+      co.elastic.logs/enabled: true
+      co.elastic.logs/json.keys_under_root: true
+      co.elastic.logs/json.overwrite_keys: true
+      co.elastic.logs/json.add_error_key: true
+      co.elastic.logs/json.expand_keys: true
+    depends_on:
+      storage-files-v1:
+        condition: service_healthy
+      sessions-v1:
+        condition: service_started
+  
+  storage-files-v1:
+    image: mongo:5.0.19
+    container_name: msg-storage-files-v1
+    expose:
+      - 27017
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongo",
+          "--quiet",
+          "localhost/test",
+          "--eval",
+          "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'",
+        ]
+      interval: 5s
+      timeout: 5s
       retries: 5
 
   logs-collector:
