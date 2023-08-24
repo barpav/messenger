@@ -30,6 +30,7 @@ services:
     environment:
       - MSG_STORAGE_HOST=storage-users-v1
       - MSG_SESSIONS_HOST=sessions-v1
+      - MSG_FILES_STAT_HOST=broker
     expose:
       - 8080
       - 9000
@@ -42,6 +43,8 @@ services:
     logging: *default-logging
     depends_on:
       storage-users-v1:
+        condition: service_healthy
+      broker:
         condition: service_healthy
   
   storage-users-v1:
@@ -98,6 +101,8 @@ services:
     environment:
       - MSG_STORAGE_HOST=storage-files-v1
       - MSG_SESSIONS_HOST=sessions-v1
+      - MSG_FILES_STAT_HOST=broker
+    logging: *default-logging
     expose:
       - 8080
     labels:
@@ -111,12 +116,15 @@ services:
         condition: service_healthy
       sessions-v1:
         condition: service_started
+      broker:
+        condition: service_healthy
   
   storage-files-v1:
     image: mongo:5.0.19
     container_name: msg-storage-files-v1
     expose:
       - 27017
+    logging: *default-logging
     healthcheck:
       test:
         [
@@ -127,6 +135,18 @@ services:
           "--eval",
           "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'",
         ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  broker:
+    image: rabbitmq:3.9.29-alpine
+    container_name: msg-broker
+    expose:
+      - 5672
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
