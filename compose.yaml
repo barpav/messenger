@@ -95,6 +95,44 @@ services:
       timeout: 2s
       retries: 5
   
+  messages-v1:
+    image: ghcr.io/barpav/msg-messages:v1
+    container_name: msg-messages-v1
+    environment:
+      - MSG_STORAGE_HOST=storage-messages-v1
+      - MSG_SESSIONS_HOST=sessions-v1
+      - MSG_FILES_STAT_HOST=broker
+    logging: *default-logging
+    expose:
+      - 8080
+    labels:
+      co.elastic.logs/enabled: true
+      co.elastic.logs/json.keys_under_root: true
+      co.elastic.logs/json.overwrite_keys: true
+      co.elastic.logs/json.add_error_key: true
+      co.elastic.logs/json.expand_keys: true
+    depends_on:
+      storage-messages-v1:
+        condition: service_healthy
+      sessions-v1:
+        condition: service_started
+      broker:
+        condition: service_healthy
+
+  storage-messages-v1:
+    image: ghcr.io/barpav/msg-storage-messages:v1
+    container_name: msg-storage-messages-v1
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    logging: *default-logging
+    expose:
+      - 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 2s
+      retries: 5
+  
   files-v1:
     image: ghcr.io/barpav/msg-files:v1
     container_name: msg-files-v1
