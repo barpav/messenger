@@ -39,9 +39,8 @@ make down
 I use Docker Engine instead of Docker Desktop and according to the [Docker official documentation](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user): <br>
 
 > The Docker daemon binds to a Unix socket, not a TCP port. By default it's the root user that owns the Unix socket, and other users can only access it using sudo. The Docker daemon always runs as the root user.<br>
-<br>
-If you don't want to preface the docker command with sudo, create a Unix group called docker and add users to it
-<br>
+> <br>
+> If you don't want to preface the docker command with sudo, create a Unix group called docker and add users to it
 
 And: <br>
 
