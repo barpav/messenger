@@ -9,7 +9,7 @@ If you are looking for an open-source REST API for your own front end/mobile app
 - User session management and info (time started, last activity, IP, client).
 - Messaging with text and any files.
 - Editable and deletable messages.
-- Message synching between multiple clients.
+- Message syncing between multiple clients.
 - Own file storage with file-level access and garbage collector.
 
 ## REST API specification
@@ -83,4 +83,6 @@ Logs from all major components are available in Kibana at http://localhost:5601.
 
 ### Deployment diagram
 
-![Deployment diagram](./docs/deployment_diagram.svg)
+[![Deployment diagram](./docs/deployment_diagram.svg)](https://raw.githubusercontent.com/barpav/messenger/main/docs/deployment_diagram.svg)
+
+<p style="text-align:center"> (click to open on full screen) </p>
