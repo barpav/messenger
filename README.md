@@ -85,4 +85,4 @@ Logs from all major components are available in Kibana at http://localhost:5601.
 
 [![Deployment diagram](./docs/deployment_diagram.svg)](https://raw.githubusercontent.com/barpav/messenger/main/docs/deployment_diagram.svg)
 
-<p style="text-align:center"> (click to open on full screen) </p>
+<p align=center> (click to open on full screen) </p>
